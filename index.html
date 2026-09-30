@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Systems of Equations Interactive Lab</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --line1: #2563eb;
+            --line2: #dc2626;
+            --intersection: #16a34a;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card-bg);
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        h1 { margin: 0; font-size: 1.5rem; color: #0f172a; }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-left: 8px;
+        }
+
+        .btn:hover { background-color: var(--primary-hover); }
+        .btn-secondary { background-color: #64748b; }
+        .btn-secondary:hover { background-color: #475569; }
+        .btn-danger { background-color: #ef4444; }
+        .btn-danger:hover { background-color: #dc2626; }
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 850px) {
+            .grid-layout { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        .controls {
+            display: grid;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .line-group {
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 5px solid;
+        }
+
+        .line-1-group { background: #eff6ff; border-color: var(--line1); }
+        .line-2-group { background: #fef2f2; border-color: var(--line2); }
+
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        input[type=range] { flex: 1; }
+
+        canvas {
+            width: 100%;
+            height: 380px;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+        }
+
+        .solution-box {
+            margin-top: 15px;
+            padding: 12px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .quiz-card { margin-top: 20px; }
+
+        .quiz-question {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .options {
+            display: grid;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 1px solid #cbd5e1;
+            padding: 10px;
+            text-align: left;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        .option-btn:hover { background: #f1f5f9; }
+        .option-btn.correct { background: #dcfce7; border-color: #22c55e; color: #15803d; }
+        .option-btn.incorrect { background: #fee2e2; border-color: #ef4444; color: #b91c1c; }
+
+        .score-board {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .answer-key-box {
+            display: none;
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Systems of Equations Lab</h1>
+        <div>
+            <button class="btn btn-secondary" onclick="copyLabLink()">🔗 Copy Link</button>
+            <button class="btn btn-secondary" onclick="toggleAnswerKey()">🔑 Teacher Key</button>
+        </div>
+    </header>
+
+    <div class="grid-layout">
+        <!-- Interactive Grapher -->
+        <div class="card">
+            <h2>Graph Visualizer</h2>
+            <div class="controls">
+                <div class="line-group line-1-group">
+                    <strong style="color: var(--line1);">Line 1: <span id="eq1-text">y = 1x + 0</span></strong>
+                    <div class="slider-row">
+                        <label>Slope (m₁): <span id="m1-val">1</span></label>
+                        <input type="range" id="m1" min="-5" max="5" step="0.5" value="1">
+                    </div>
+                    <div class="slider-row">
+                        <label>Intercept (b₁): <span id="b1-val">0</span></label>
+                        <input type="range" id="b1" min="-8" max="8" step="1" value="0">
+                    </div>
+                </div>
+
+                <div class="line-group line-2-group">
+                    <strong style="color: var(--line2);">Line 2: <span id="eq2-text">y = -1x + 4</span></strong>
+                    <div class="slider-row">
+                        <label>Slope (m₂): <span id="m2-val">-1</span></label>
+                        <input type="range" id="m2" min="-5" max="5" step="0.5" value="-1">
+                    </div>
+                    <div class="slider-row">
+                        <label>Intercept (b₂): <span id="b2-val">4</span></label>
+                        <input type="range" id="b2" min="-8" max="8" step="1" value="4">
+                    </div>
+                </div>
+            </div>
+
+            <canvas id="graphCanvas"></canvas>
+            <div class="solution-box" id="solution-text">Intersection: (2, 2)</div>
+        </div>
+
+        <!-- Interactive Quiz -->
+        <div class="card">
+            <div class="score-board">
+                <h2>Interactive Quiz</h2>
+                <div>
+                    <strong>Score: <span id="score">0</span> / <span id="total-q">3</span></strong>
+                    <button class="btn btn-danger" style="padding: 4px 8px; font-size: 0.8rem;" onclick="resetQuiz()">Reset</button>
+                </div>
+            </div>
+
+            <div id="quiz-container"></div>
+
+            <div id="teacher-key" class="answer-key-box">
+                <strong>Teacher Answer Key & Explanations:</strong>
+                <ol style="margin-top: 8px; padding-left: 20px;">
+                    <li><strong>Q1:</strong> (2, 3) — Substitute x = 2 into both equations: 2(2)-1 = 3 and -(2)+5 = 3.</li>
+                    <li><strong>Q2:</strong> Parallel (No Solution) — Both lines have identical slopes (m = 3) but different y-intercepts.</li>
+                    <li><strong>Q3:</strong> Infinite Solutions — The equations are identical when simplified (y = -2x + 4).</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Canvas setup
+    const canvas = document.getElementById('graphCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+
+    const scale = 20; // Pixels per grid unit
+    const originX = canvas.width / 2;
+    const originY = canvas.height / 2;
+
+    // Sliders
+    const m1Input = document.getElementById('m1');
+    const b1Input = document.getElementById('b1');
+    const m2Input = document.getElementById('m2');
+    const b2Input = document.getElementById('b2');
+
+    function updateGraph() {
+        const m1 = parseFloat(m1Input.value);
+        const b1 = parseFloat(b1Input.value);
+        const m2 = parseFloat(m2Input.value);
+        const b2 = parseFloat(b2Input.value);
+
+        document.getElementById('m1-val').textContent = m1;
+        document.getElementById('b1-val').textContent = b1;
+        document.getElementById('m2-val').textContent = m2;
+        document.getElementById('b2-val').textContent = b2;
+
+        document.getElementById('eq1-text').textContent = `y = ${m1}x ${b1 >= 0 ? '+ ' + b1 : '- ' + Math.abs(b1)}`;
+        document.getElementById('eq2-text').textContent = `y = ${m2}x ${b2 >= 0 ? '+ ' + b2 : '- ' + Math.abs(b2)}`;
+
+        // Clear Canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw Grid
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 1;
+        for (let x = 0; x < canvas.width; x += scale) {
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+        }
+        for (let y = 0; y < canvas.height; y += scale) {
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+        }
+
+        // Draw Axes
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(originX, 0); ctx.lineTo(originX, canvas.height); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, originY); ctx.lineTo(canvas.width, originY); ctx.stroke();
+
+        // Draw Line 1
+        drawLine(m1, b1, '#2563eb');
+
+        // Draw Line 2
+        drawLine(m2, b2, '#dc2626');
+
+        // Calculate Intersection
+        const solBox = document.getElementById('solution-text');
+        if (m1 === m2) {
+            if (b1 === b2) {
+                solBox.textContent = "Infinitely Many Solutions (Same Line)";
+                solBox.style.color = "#2563eb";
+            } else {
+                solBox.textContent = "No Solution (Parallel Lines)";
+                solBox.style.color = "#dc2626";
+            }
+        } else {
+            const x = (b2 - b1) / (m1 - m2);
+            const y = m1 * x + b1;
+            
+            // Draw Intersection Point
+            const canvasX = originX + x * scale;
+            const canvasY = originY - y * scale;
+
+            ctx.fillStyle = '#16a34a';
+            ctx.beginPath();
+            ctx.arc(canvasX, canvasY, 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            solBox.textContent = `Intersection: (${x.toFixed(2)}, ${y.toFixed(2)})`;
+            solBox.style.color = "#16a34a";
+        }
+    }
+
+    function drawLine(m, b, color) {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+
+        const x1 = -15;
+        const y1 = m * x1 + b;
+        const x2 = 15;
+        const y2 = m * x2 + b;
+
+        ctx.moveTo(originX + x1 * scale, originY - y1 * scale);
+        ctx.lineTo(originX + x2 * scale, originY - y2 * scale);
+        ctx.stroke();
+    }
+
+    [m1Input, b1Input, m2Input, b2Input].forEach(input => input.addEventListener('input', updateGraph));
+
+    // Quiz Questions Data
+    const quizData = [
+        {
+            q: "Find the solution to the system: <br> <code>y = 2x - 1</code> <br> <code>y = -x + 5</code>",
+            options: ["(2, 3)", "(1, 1)", "(3, 5)", "No Solution"],
+            correct: 0
+        },
+        {
+            q: "How many solutions exist for this system? <br> <code>y = 3x + 2</code> <br> <code>y = 3x - 4</code>",
+            options: ["One Solution", "No Solution (Parallel)", "Infinitely Many"],
+            correct: 1
+        },
+        {
+            q: "What is the relationship between the lines? <br> <code>y = -2x + 4</code> <br> <code>2x + y = 4</code>",
+            options: ["Intersect at (0,4)", "Parallel", "Infinitely Many (Same Line)"],
+            correct: 2
+        }
+    ];
+
+    let userScore = 0;
+    let answeredQuestions = new Set();
+
+    function renderQuiz() {
+        const container = document.getElementById('quiz-container');
+        document.getElementById('total-q').textContent = quizData.length;
+        container.innerHTML = '';
+
+        quizData.forEach((item, qIdx) => {
+            const qDiv = document.createElement('div');
+            qDiv.className = 'quiz-question';
+            qDiv.innerHTML = `<strong>Question ${qIdx + 1}:</strong> <p>${item.q}</p>`;
+
+            const optsDiv = document.createElement('div');
+            optsDiv.className = 'options';
+
+            item.options.forEach((opt, oIdx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = opt;
+                btn.onclick = () => checkAnswer(qIdx, oIdx, btn);
+                optsDiv.appendChild(btn);
+            });
+
+            qDiv.appendChild(optsDiv);
+            container.appendChild(qDiv);
+        });
+    }
+
+    function checkAnswer(qIdx, optionIdx, button) {
+        if (answeredQuestions.has(qIdx)) return; // Prevent re-answering
+        answeredQuestions.add(qIdx);
+
+        const parent = button.parentElement;
+        const buttons = parent.querySelectorAll('.option-btn');
+        const correctIdx = quizData[qIdx].correct;
+
+        buttons.forEach((btn, idx) => {
+            btn.disabled = true;
+            if (idx === correctIdx) {
+                btn.classList.add('correct');
+            }
+        });
+
+        if (optionIdx === correctIdx) {
+            userScore++;
+            document.getElementById('score').textContent = userScore;
+        } else {
+            button.classList.add('incorrect');
+        }
+    }
+
+    function resetQuiz() {
+        userScore = 0;
+        answeredQuestions.clear();
+        document.getElementById('score').textContent = '0';
+        renderQuiz();
+    }
+
+    function toggleAnswerKey() {
+        const key = document.getElementById('teacher-key');
+        key.style.display = key.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function copyLabLink() {
+        navigator.clipboard.writeText(window.location.href);
+        alert('Link copied to clipboard! Paste this directly into Google Classroom.');
+    }
+
+    // Initialize
+    updateGraph();
+    renderQuiz();
+</script>
+
+</body>
+</html>
